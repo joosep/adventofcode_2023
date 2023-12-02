@@ -30,7 +30,7 @@ def sum_word_digits(input):
     return sum(int(get_first_last_digits(line)) for line in open(input).read().split('\n'))
 
 
-validate(sum_digits, 'data/day1_example.txt', 142)
-validate(sum_digits, 'data/day1_input.txt', 53080)
-validate(sum_word_digits, 'data/day1_example2.txt', 281)
-validate(sum_word_digits, 'data/day1_input.txt', 53268)
+validate(sum_digits, 'data/day01_example.txt', 142)
+validate(sum_digits, 'data/day01_input.txt', 53080)
+validate(sum_word_digits, 'data/day01_example2.txt', 281)
+validate(sum_word_digits, 'data/day01_input.txt', 53268)
