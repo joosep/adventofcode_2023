@@ -9,5 +9,4 @@ def validate(fun, input_file, expected=None) -> bool:
         print(result)
         print(f'Tested: {fun.__name__}({input_file})')
         print('========================================')
-        return False
-    return True
+        exit(1)
