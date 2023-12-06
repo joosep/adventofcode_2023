@@ -16,7 +16,7 @@ def convert_input(input):
         for line in lines:
             dest, src, range_length = line.split(' ')
             mappings.append(Mapping(int(dest), int(src), int(src) + int(range_length) - 1))
-        mappings_list.append(mappings)
+        mappings_list.append(sorted(mappings, key=lambda x: x.src))
     return seeds, mappings_list
 
 
@@ -37,25 +37,6 @@ def find_location_number(seed, mappings_list):
     return new_seed
 
 
-def keep_unused(start, end, used_start, used_end):
-    start_ends = []
-    if start < used_start:
-        start_ends.append((start, min(end, used_start - 1)))
-    if end > used_end:
-        start_ends.append((max(start, used_end + 1), end))
-    return start_ends
-
-
-def find_one_to_one_mappings(seed_ranges, remap_ranges):
-    ranges_to_check = seed_ranges
-    for used_start, used_end in remap_ranges:
-        new_seed_ranges = []
-        for seed_start, seed_end in ranges_to_check:
-            new_seed_ranges.extend(keep_unused(seed_start, seed_end, used_start, used_end))
-        ranges_to_check = new_seed_ranges
-    return ranges_to_check
-
-
 def merge_seeds(ranges):
     ranges.sort(key=lambda x: x[0])
     new_ranges = []
@@ -72,25 +53,6 @@ def merge_seeds(ranges):
     return new_ranges
 
 
-def find_location_number_in_range(seed_ranges, mappings_list):
-    for mappings in mappings_list:
-        print(f'seeds: {seed_ranges}')
-        remap_ranges = merge_seeds([(mapping.src, mapping.src_max) for mapping in mappings])
-        print(f'remap_ranges: {sorted(remap_ranges, key=lambda x: x[0])}')
-        for src_start, src_end in merge_seeds(find_one_to_one_mappings(seed_ranges, remap_ranges)):
-            mappings.append(Mapping(src_start, src_start, src_end))
-        print(f'mappings: {mappings}')
-        remapped_seeds = []
-        for seed_start, seed_end in seed_ranges:
-            for mapping in mappings:
-                remapped_seeds.extend(get_new_seed_range(seed_start, seed_end, mapping))
-        print(f'remapped_seeds: {sorted(remapped_seeds, key=lambda x: x[0])}')
-        seed_ranges = merge_seeds(remapped_seeds)
-        print(f'final_list: {seed_ranges}')
-        print('----')
-    return min(seed[0] for seed in seed_ranges)
-
-
 def get_new_seed_range(seed_start, seed_end, mapping):
     if (mapping.src <= seed_start <= mapping.src_max) or \
             (mapping.src <= seed_end <= mapping.src_max):
@@ -103,6 +65,39 @@ def get_new_seed_range(seed_start, seed_end, mapping):
     return []
 
 
+def find_location_number_in_range(seed_ranges, mappings_list):
+    for mappings in mappings_list:
+        seed_ranges = merge_seeds(seed_ranges)
+        remapped_seeds = []
+        for seed_start, seed_end in seed_ranges:
+            for mapping in mappings:
+                seed_before_mapping_start = seed_start if seed_start < mapping.src else None
+                seed_before_mapping_end = min(seed_start, mapping.src - 1) if seed_before_mapping_start else None
+                seed_mapping_start = max(seed_start, mapping.src) \
+                    if mapping.src <= seed_end and seed_start <= mapping.src_max else None
+                seed_mapping_end = min(mapping.src_max, seed_end) if seed_mapping_start else None
+                seed_after_mapping_start = mapping.src_max + 1 if mapping.src_max < seed_end else None
+                seed_after_mapping_end = seed_end if seed_after_mapping_start else None
+                # print(f'seeds before: {seed_before_mapping_start} - {seed_before_mapping_end}, '
+                #      f'seed mapping start: {seed_mapping_start} - {seed_mapping_end}, '
+                #      f'seeds after: {seed_after_mapping_start} - {seed_after_mapping_end}')
+                if seed_before_mapping_start:
+                    remapped_seeds.append((seed_start, seed_before_mapping_end))  # start to src or end
+                if seed_mapping_start:
+                    remapped_seeds.extend(get_new_seed_range(seed_start, seed_mapping_end, mapping))
+                if seed_after_mapping_start:
+                    seed_start = max(seed_start, seed_after_mapping_start)
+                    continue
+                else:
+                    break
+            if seed_after_mapping_start:
+                remapped_seeds.append((seed_start + 1, seed_end))
+        seed_ranges = merge_seeds(remapped_seeds)
+        print(f'next seeds: {seed_ranges}')
+        print('----')
+    return min(seed[0] for seed in seed_ranges)
+
+
 def get_min_loc_number(input):
     seeds, mappings_list = convert_input(input)
     return min(find_location_number(seed, mappings_list) for seed in seeds)
@@ -111,10 +106,10 @@ def get_min_loc_number(input):
 def get_min_loc_number_in_range(input):
     seeds, mappings_list = convert_input(input)
     seed_ranges = [(int(seed[0]), int(seed[0]) + int(seed[1])) for seed in list(zip(seeds[::2], seeds[1::2]))]
-    return find_location_number_in_range(merge_seeds(seed_ranges), mappings_list)
+    return find_location_number_in_range(seed_ranges, mappings_list)
 
 
 validate(get_min_loc_number, 'data/day05_example.txt', 35)
 validate(get_min_loc_number, 'data/day05_input.txt', 177942185)
 validate(get_min_loc_number_in_range, 'data/day05_example.txt', 46)
-# validate(get_min_loc_number_in_range, 'data/day05_input.txt')  # answer is between 52360685 - 85624563
+validate(get_min_loc_number_in_range, 'data/day05_input.txt', 69841803)
