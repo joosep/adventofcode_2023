@@ -77,10 +77,9 @@ def find_location_number_in_range(seed_ranges, mappings_list):
                     if mapping.src <= seed_end and seed_start <= mapping.src_max else None
                 seed_mapping_end = min(mapping.src_max, seed_end) if seed_mapping_start else None
                 seed_after_mapping_start = mapping.src_max + 1 if mapping.src_max < seed_end else None
-                seed_after_mapping_end = seed_end if seed_after_mapping_start else None
                 # print(f'seeds before: {seed_before_mapping_start} - {seed_before_mapping_end}, '
                 #      f'seed mapping start: {seed_mapping_start} - {seed_mapping_end}, '
-                #      f'seeds after: {seed_after_mapping_start} - {seed_after_mapping_end}')
+                #      f'seeds after: {seed_after_mapping_start} - {seed_end if seed_after_mapping_start else None}')
                 if seed_before_mapping_start:
                     remapped_seeds.append((seed_start, seed_before_mapping_end))  # start to src or end
                 if seed_mapping_start:
