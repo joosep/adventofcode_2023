@@ -1,5 +1,16 @@
 from validate import validate
 
+cache_map = {}
+
+
+def find_arrangement_cache(springs, groups):
+    key = str((springs, groups))
+    if key in cache_map:
+        return cache_map[key]
+    arrangements = find_arrangement(springs, groups)
+    cache_map[key] = arrangements
+    return arrangements
+
 
 def has_spring(springs):
     return any(spring == "#" for spring in springs)
@@ -20,15 +31,15 @@ def find_arrangement(springs_groups, group_counts):
     if len(cur_group) < cur_group_count:
         if has_spring(cur_match):
             return 0
-        return find_arrangement(springs_groups[1:], group_counts.copy())
+        return find_arrangement_cache(springs_groups[1:], group_counts.copy())
     final_arrangements = 0
     if len(cur_group) > cur_group_count and cur_group[cur_group_count] == "?":
-        final_arrangements = find_arrangement([cur_group[cur_group_count + 1:]] + springs_groups[1:], group_counts[1:])
+        final_arrangements = find_arrangement_cache([cur_group[cur_group_count + 1:]] + springs_groups[1:], group_counts[1:])
     if len(cur_group) == cur_group_count:
-        final_arrangements += find_arrangement(springs_groups[1:], group_counts[1:])
+        final_arrangements += find_arrangement_cache(springs_groups[1:], group_counts[1:])
     if len(cur_group) >= cur_group_count:
         if cur_group[0] != "#":
-            final_arrangements += find_arrangement([cur_group[1:]] + springs_groups[1:], group_counts.copy())
+            final_arrangements += find_arrangement_cache([cur_group[1:]] + springs_groups[1:], group_counts.copy())
     return final_arrangements
 
 
@@ -67,4 +78,4 @@ assert get_arrangements('??#.?? 2,1') == 2
 validate(get_arrangement_sum, 'data/day12_example.txt', 21)
 validate(get_arrangement_sum, 'data/day12_input.txt', 7407)
 validate(get_exploded_arrangement_sum, 'data/day12_example.txt', 525152)
-validate(get_exploded_arrangement_sum, 'data/day12_input.txt')
+validate(get_exploded_arrangement_sum, 'data/day12_input.txt', 30568243604962)
