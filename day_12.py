@@ -60,7 +60,7 @@ def get_arrangement_sum(input):
 def unfold_record(line):
     springs = line.split(' ')[0]
     groups = line.split(' ')[1]
-    return f'{springs}?{springs}?{springs}?{springs}?{springs} {groups},{groups},{groups},{groups},{groups}'
+    return '?'.join([springs]*5)+' '+','.join([groups]*5)
 
 
 def get_exploded_arrangement_sum(input):
